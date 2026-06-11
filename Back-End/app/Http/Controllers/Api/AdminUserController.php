@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAdminRequest;
-use App\Http\Requests\Admin\UpdateAdminPasswordRequest;
+use App\Http\Requests\Admin\UpdateAdminRequest;
 use App\Http\Resources\AdminResource;
 use App\Models\Admin;
 use Illuminate\Http\JsonResponse;
@@ -31,21 +31,35 @@ class AdminUserController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'تم إضافة المستخدم بنجاح.',
+            'message' => 'لقد تم انشاء الحساب بنجاح.',
             'admin' => new AdminResource($admin),
         ], 201);
     }
 
-    public function updatePassword(UpdateAdminPasswordRequest $request, Admin $admin): JsonResponse
+    public function update(UpdateAdminRequest $request, Admin $admin): JsonResponse
     {
-        $admin->update([
-            'password' => $request->password,
-        ]);
+        $data = [];
 
-        $admin->tokens()->delete();
+        if ($request->filled('full_name')) {
+            $data['full_name'] = $request->full_name;
+        }
+
+        if ($request->filled('email')) {
+            $data['email'] = $request->email;
+        }
+
+        if ($request->filled('password')) {
+            $data['password'] = $request->password;
+        }
+
+        $admin->update($data);
+
+        if ($request->filled('password')) {
+            $admin->tokens()->delete();
+        }
 
         return response()->json([
-            'message' => 'تم تحديث كلمة المرور بنجاح.',
+            'message' => 'تم تحديث بيانات المستخدم بنجاح.',
             'admin' => new AdminResource($admin->fresh()),
         ]);
     }
@@ -61,12 +75,6 @@ class AdminUserController extends Controller
         if (Admin::count() <= 1) {
             return response()->json([
                 'message' => 'لا يمكن حذف آخر مدير في النظام.',
-            ], 422);
-        }
-
-        if ($admin->products()->exists()) {
-            return response()->json([
-                'message' => 'لا يمكن حذف مدير لديه منتجات مرتبطة. انقل المنتجات أو احذفها أولاً.',
             ], 422);
         }
 

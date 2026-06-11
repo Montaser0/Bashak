@@ -61,6 +61,20 @@ POST /api/admin/login
 }
 ```
 
+### إنشاء حساب أدمن جديد بدون تسجيل دخول
+
+```json
+POST /api/admin/register
+{
+  "full_name": "Admin Test",
+  "email": "admin2@store.com",
+  "password": "password123",
+  "password_confirmation": "password123"
+}
+```
+
+هذا المسار عام ولا يحتاج Bearer Token، وهو مخصص لحسابات الأدمن فقط ويُحفظ في جدول `admins`.
+
 ### إضافة مستخدم (مدير)
 
 ```json

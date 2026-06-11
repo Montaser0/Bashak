@@ -14,6 +14,7 @@ Route::post('/orders', [OrderController::class, 'store']);
 
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AdminUserController::class, 'store']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
@@ -30,7 +31,7 @@ Route::prefix('admin')->group(function () {
 
         Route::get('/users', [AdminUserController::class, 'index']);
         Route::post('/users', [AdminUserController::class, 'store']);
-        Route::put('/users/{admin}/password', [AdminUserController::class, 'updatePassword']);
+        Route::put('/users/{admin}', [AdminUserController::class, 'update']);
         Route::delete('/users/{admin}', [AdminUserController::class, 'destroy']);
     });
 });

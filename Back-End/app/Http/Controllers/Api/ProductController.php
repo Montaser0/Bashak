@@ -10,6 +10,7 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -29,7 +30,9 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): JsonResponse
     {
-        $imagePath = $request->file('image')->store('products', 'public');
+        $imagePath = $request->hasFile('image')
+            ? $request->file('image')->store('products', 'public')
+            : $request->input('image');
 
         $product = Product::create([
             'product_name' => $request->product_name,
@@ -37,7 +40,6 @@ class ProductController extends Controller
             'price' => $request->price,
             'quantity' => $request->quantity,
             'image_path' => $imagePath,
-            'created_by' => $request->user()->id,
         ]);
 
         return response()->json([
@@ -51,8 +53,11 @@ class ProductController extends Controller
         $data = $request->only(['product_name', 'description', 'price', 'quantity']);
 
         if ($request->hasFile('image')) {
-            Storage::disk('public')->delete($product->image_path);
+            $this->deleteLocalImageIfNeeded($product->image_path);
             $data['image_path'] = $request->file('image')->store('products', 'public');
+        } elseif ($request->filled('image')) {
+            $this->deleteLocalImageIfNeeded($product->image_path);
+            $data['image_path'] = $request->input('image');
         }
 
         $product->update($data);
@@ -65,11 +70,24 @@ class ProductController extends Controller
 
     public function destroy(Product $product): JsonResponse
     {
-        Storage::disk('public')->delete($product->image_path);
+        $this->deleteLocalImageIfNeeded($product->image_path);
         $product->delete();
 
         return response()->json([
             'message' => 'تم حذف المنتج بنجاح.',
         ]);
+    }
+
+    private function deleteLocalImageIfNeeded(?string $imagePath): void
+    {
+        if (! $imagePath) {
+            return;
+        }
+
+        if (Str::startsWith($imagePath, ['http://', 'https://'])) {
+            return;
+        }
+
+        Storage::disk('public')->delete($imagePath);
     }
 }

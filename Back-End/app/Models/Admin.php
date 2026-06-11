@@ -28,11 +28,6 @@ class Admin extends Authenticatable
         ];
     }
 
-    public function products(): HasMany
-    {
-        return $this->hasMany(Product::class, 'created_by');
-    }
-
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'created_by');

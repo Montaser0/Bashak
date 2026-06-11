@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -14,7 +14,6 @@ class Product extends Model
         'price',
         'image_path',
         'quantity',
-        'created_by',
     ];
 
     protected function casts(): array
@@ -25,13 +24,12 @@ class Product extends Model
         ];
     }
 
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(Admin::class, 'created_by');
-    }
-
     public function getImageUrlAttribute(): string
     {
+        if (Str::startsWith($this->image_path, ['http://', 'https://'])) {
+            return $this->image_path;
+        }
+
         return url('storage/' . ltrim($this->image_path, '/'));
     }
 }
