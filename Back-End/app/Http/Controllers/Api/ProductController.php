@@ -35,6 +35,7 @@ class ProductController extends Controller
             'product_name' => $request->product_name,
             'description' => $request->description,
             'price' => $request->price,
+            'quantity' => $request->quantity,
             'image_path' => $imagePath,
             'created_by' => $request->user()->id,
         ]);
@@ -47,7 +48,7 @@ class ProductController extends Controller
 
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
-        $data = $request->only(['product_name', 'description', 'price']);
+        $data = $request->only(['product_name', 'description', 'price', 'quantity']);
 
         if ($request->hasFile('image')) {
             Storage::disk('public')->delete($product->image_path);

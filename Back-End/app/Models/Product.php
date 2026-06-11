@@ -13,6 +13,7 @@ class Product extends Model
         'description',
         'price',
         'image_path',
+        'quantity',
         'created_by',
     ];
 
@@ -20,6 +21,7 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'quantity' => 'integer',
         ];
     }
 
@@ -30,6 +32,6 @@ class Product extends Model
 
     public function getImageUrlAttribute(): string
     {
-        return Storage::disk('public')->url($this->image_path);
+        return url('storage/' . ltrim($this->image_path, '/'));
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use App\Models\StockAlert;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -17,13 +18,14 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $requestedItems = collect($validated['items']);
-        $products = Product::query()
-            ->whereIn('id', $requestedItems->pluck('product_id')->all())
-            ->get()
-            ->keyBy('id');
+        $order = DB::transaction(function () use ($validated) {
+            $requestedItems = collect($validated['items']);
+            $products = Product::query()
+                ->whereIn('id', $requestedItems->pluck('product_id')->all())
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
 
-        $order = DB::transaction(function () use ($validated, $requestedItems, $products) {
             $subtotal = 0;
             $preparedItems = [];
 
@@ -40,6 +42,29 @@ class OrderController extends Controller
                 $unitPrice = (float) $product->price;
                 $lineTotal = round($unitPrice * $quantity, 2);
                 $subtotal += $lineTotal;
+
+                if ($product->quantity < $quantity) {
+                    throw ValidationException::withMessages([
+                        'items' => ['الكمية المطلوبة لبعض المنتجات أكبر من المخزون المتاح.'],
+                    ]);
+                }
+
+                $remainingQuantity = (int) $product->quantity - $quantity;
+                $product->update(['quantity' => $remainingQuantity]);
+
+                if ($remainingQuantity <= 2 && ! StockAlert::query()
+                    ->where('product_id', $product->id)
+                    ->where('is_resolved', false)
+                    ->exists()) {
+                    StockAlert::create([
+                        'product_id' => $product->id,
+                        'product_name' => $product->product_name,
+                        'remaining_quantity' => $remainingQuantity,
+                        'threshold' => 2,
+                        'message' => 'تنبيه: مخزون المنتج ' . $product->product_name . ' منخفض وأصبح ' . $remainingQuantity . ' قطعة.',
+                        'is_resolved' => false,
+                    ]);
+                }
 
                 $preparedItems[] = [
                     'product_id' => $product->id,

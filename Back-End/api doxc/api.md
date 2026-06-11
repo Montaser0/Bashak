@@ -114,7 +114,22 @@ Authorization: Bearer {token}
 | `product_name` | string | اسم المنتج (حد أقصى 255 حرف) |
 | `description` | string | وصف المنتج |
 | `price` | string/number | السعر (منزلتان عشريتان) |
+| `quantity` | integer | المخزون الحالي |
 | `image_url` | string | رابط الصورة الكامل |
+| `created_at` | string (ISO 8601) | تاريخ الإنشاء |
+| `updated_at` | string (ISO 8601) | تاريخ آخر تحديث |
+
+### Stock Alert
+
+| الحقل | النوع | الوصف |
+|-------|-------|-------|
+| `id` | integer | المعرف |
+| `product_id` | integer | معرف المنتج |
+| `product_name` | string | اسم المنتج |
+| `remaining_quantity` | integer | الكمية المتبقية |
+| `threshold` | integer | الحد الذي عنده يظهر التنبيه |
+| `message` | string | نص التنبيه |
+| `is_resolved` | boolean | هل تم حل التنبيه |
 | `created_at` | string (ISO 8601) | تاريخ الإنشاء |
 | `updated_at` | string (ISO 8601) | تاريخ آخر تحديث |
 
@@ -514,6 +529,13 @@ Authorization: Bearer {token}
 
 ```http
 GET /api/admin/orders/{id}
+Authorization: Bearer {token}
+```
+
+### 14. عرض تنبيهات المخزون
+
+```http
+GET /api/admin/stock-alerts
 Authorization: Bearer {token}
 ```
 
