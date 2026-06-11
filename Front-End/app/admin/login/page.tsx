@@ -10,16 +10,26 @@ export default function AdminLogin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // إرسال البيانات للـ API للتحقق منها
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (res.ok) {
-      router.push('/admin/add-product'); // الانتقال لصفحة الإضافة عند نجاح الدخول
-    } else {
-      alert("بيانات الدخول غير صحيحة");
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('admin_token', data.access_token);
+        router.push('/admin/add-product');
+      } else {
+        alert("بيانات الدخول غير صحيحة: " + (data.message || "خطأ غير معروف"));
+      }
+    } catch (error) {
+      alert("تعذر الاتصال بالخادم، ");
     }
   };
 
@@ -37,7 +47,7 @@ export default function AdminLogin() {
           className="w-full p-4 border rounded-2xl"
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button className="w-full bg-gray-900 text-white py-4 rounded-full font-bold hover:bg-black transition">
+        <button type="submit" className="w-full bg-gray-900 text-white py-4 rounded-full font-bold hover:bg-black transition">
           تسجيل الدخول
         </button>
       </form>
