@@ -18,6 +18,7 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'subtotal' => $this->subtotal,
             'total' => $this->total,
+            'whatsapp_recipient_number' => $this->whenLoaded('items') ? $this->whatsappRecipientNumber() : null,
             'items' => $this->whenLoaded('items', function () {
                 return OrderItemResource::collection($this->items);
             }),

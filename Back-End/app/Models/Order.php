@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 class Order extends Model
 {
+    private const WHATSAPP_RECIPIENT_NUMBER = '+905316924944';
+
     protected $fillable = [
         'order_number',
         'customer_name',
@@ -66,9 +67,14 @@ class Order extends Model
 
     public function whatsappUrl(): string
     {
-        $phoneNumber = preg_replace('/\D+/', '', $this->whatsapp_number) ?? '';
+        $phoneNumber = self::WHATSAPP_RECIPIENT_NUMBER;
 
         return 'https://wa.me/' . $phoneNumber . '?text=' . rawurlencode($this->whatsappMessage());
+    }
+
+    public function whatsappRecipientNumber(): string
+    {
+        return '+' . self::WHATSAPP_RECIPIENT_NUMBER;
     }
 
     private function formatMoney(float $amount): string

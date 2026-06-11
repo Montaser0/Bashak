@@ -163,6 +163,7 @@ Authorization: Bearer {token}
   "status": "pending",
   "subtotal": "3299.00",
   "total": "3299.00",
+  "whatsapp_recipient_number": "+905316924944",
   "items": [
     {
       "id": 1,
@@ -174,7 +175,7 @@ Authorization: Bearer {token}
     }
   ],
   "whatsapp_message": "فاتورة الطلب...",
-  "whatsapp_url": "https://wa.me/201001112233?text=...",
+  "whatsapp_url": "https://wa.me/905316924944?text=...",
   "created_at": "2026-06-11T12:00:00.000000Z",
   "updated_at": "2026-06-11T12:00:00.000000Z"
 }
@@ -273,6 +274,7 @@ Content-Type: application/json
     "status": "pending",
     "subtotal": "3299.00",
     "total": "3299.00",
+    "whatsapp_recipient_number": "+905316924944",
     "items": [
       {
         "id": 1,
@@ -284,11 +286,11 @@ Content-Type: application/json
       }
     ],
     "whatsapp_message": "فاتورة الطلب...",
-    "whatsapp_url": "https://wa.me/201001112233?text=...",
+    "whatsapp_url": "https://wa.me/905316924944?text=...",
     "created_at": "2026-06-11T12:00:00.000000Z",
     "updated_at": "2026-06-11T12:00:00.000000Z"
   },
-  "whatsapp_url": "https://wa.me/201001112233?text=...",
+  "whatsapp_url": "https://wa.me/905316924944?text=...",
   "whatsapp_message": "فاتورة الطلب..."
 }
 ```
@@ -560,7 +562,7 @@ Authorization: Bearer {token}
       "total": "3299.00",
       "items": [],
       "whatsapp_message": "فاتورة الطلب...",
-      "whatsapp_url": "https://wa.me/201001112233?text=...",
+      "whatsapp_url": "https://wa.me/905316924944?text=...",
       "created_at": "2026-06-11T12:00:00.000000Z",
       "updated_at": "2026-06-11T12:00:00.000000Z"
     }
@@ -599,7 +601,7 @@ Authorization: Bearer {token}
       }
     ],
     "whatsapp_message": "فاتورة الطلب...",
-    "whatsapp_url": "https://wa.me/201001112233?text=...",
+    "whatsapp_url": "https://wa.me/905316924944?text=...",
     "created_at": "2026-06-11T12:00:00.000000Z",
     "updated_at": "2026-06-11T12:00:00.000000Z"
   }
