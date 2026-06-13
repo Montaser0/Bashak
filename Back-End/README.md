@@ -2,6 +2,8 @@
 
 متجر إلكتروني بسيط — واجهة برمجية Laravel REST API.
 
+> للفهم المعماري الشامل راجع [ARCHITECTURE.md](ARCHITECTURE.md). للتوثيق التفصيلي راجع [api doxc/api.md](api%20doxc/api.md).
+
 ## المتطلبات
 
 - PHP 8.2+
@@ -34,21 +36,26 @@ php artisan serve
 |--------|----------|-------|
 | GET | `/api/products` | عرض جميع المنتجات |
 | GET | `/api/products/{id}` | تفاصيل منتج |
+| POST | `/api/orders` | إنشاء طلب من السلة |
+| POST | `/api/admin/login` | تسجيل الدخول |
+| POST | `/api/admin/register` | إنشاء حساب أدمن (بدون Bearer Token) |
 
 ### المدير — يتطلب `Authorization: Bearer {token}`
 
 | Method | Endpoint | الوصف |
 |--------|----------|-------|
-| POST | `/api/admin/login` | تسجيل الدخول |
 | GET | `/api/admin/me` | بيانات المدير الحالي |
 | POST | `/api/admin/logout` | تسجيل الخروج |
 | GET | `/api/admin/products` | عرض المنتجات |
 | POST | `/api/admin/products` | إضافة منتج |
 | PUT | `/api/admin/products/{id}` | تعديل منتج |
 | DELETE | `/api/admin/products/{id}` | حذف منتج |
+| GET | `/api/admin/orders` | عرض الطلبات |
+| GET | `/api/admin/orders/{id}` | تفاصيل طلب |
+| GET | `/api/admin/stock-alerts` | تنبيهات انخفاض المخزون |
 | GET | `/api/admin/users` | عرض المستخدمين (المدراء) |
 | POST | `/api/admin/users` | إضافة مستخدم جديد |
-| PUT | `/api/admin/users/{id}/password` | تعديل كلمة مرور مستخدم |
+| PUT | `/api/admin/users/{id}` | تعديل بيانات مدير (اسم، بريد، كلمة مرور) |
 | DELETE | `/api/admin/users/{id}` | حذف مستخدم |
 
 ### تسجيل الدخول
@@ -89,17 +96,21 @@ Authorization: Bearer {token}
 }
 ```
 
-### تعديل كلمة مرور مستخدم
+### تعديل بيانات مدير (بما فيها كلمة المرور)
 
 ```json
-PUT /api/admin/users/{id}/password
+PUT /api/admin/users/{id}
 Authorization: Bearer {token}
 
 {
+  "full_name": "اسم المدير الجديد",
+  "email": "newadmin@store.com",
   "password": "newpassword123",
   "password_confirmation": "newpassword123"
 }
 ```
+
+يمكن إرسال `full_name` أو `email` أو `password` فقط. عند تغيير كلمة المرور تُحذف جميع رموز الوصول الخاصة بالحساب.
 
 ### إضافة منتج
 
@@ -108,10 +119,10 @@ POST /api/admin/products
 Content-Type: multipart/form-data
 Authorization: Bearer {token}
 
-product_name, description, price, image (file)
+product_name, description, price, quantity, image (file أو URL)
 ```
 
-> المنتج الآن يحتوي أيضًا على `quantity` كمخزون، ويتم خصمه تلقائياً عند إنشاء الطلب.
+> يتم خصم `quantity` تلقائياً عند إنشاء الطلب.
 
 ### تنبيه انخفاض المخزون
 
