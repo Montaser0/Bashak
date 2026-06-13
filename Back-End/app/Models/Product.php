@@ -24,12 +24,16 @@ class Product extends Model
         ];
     }
 
-    public function getImageUrlAttribute(): string
+    public function getImageUrlAttribute(): ?string
     {
+        if (! $this->image_path) {
+            return null;
+        }
+
         if (Str::startsWith($this->image_path, ['http://', 'https://'])) {
             return $this->image_path;
         }
 
-        return url('storage/' . ltrim($this->image_path, '/'));
+        return Storage::disk('public')->url($this->image_path);
     }
 }

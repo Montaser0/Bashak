@@ -21,6 +21,8 @@ php artisan storage:link
 php artisan serve
 ```
 
+> **الصور:** اضبط `APP_URL` في `.env` ليطابق عنوان السيرفر (مثلاً `http://127.0.0.1:8000` محلياً أو `https://your-domain.com` عند النشر). بعد `storage:link` تُفتح الصور من `/storage/products/...` عبر المتصفح، ويُرجع API الحقل `image_url` كرابط كامل.
+
 ## حساب المدير الافتراضي
 
 | الحقل | القيمة |
