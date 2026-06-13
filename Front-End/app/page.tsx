@@ -1,6 +1,6 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, X, Trash2, ChevronDown } from "lucide-react";
+import { ShoppingCart, X, Trash2, ChevronDown, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function Home() {
@@ -13,6 +13,7 @@ export default function Home() {
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<any[]>([]);
   const [showCart, setShowCart] = useState(false);
+  const [notification, setNotification] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/products')
@@ -28,7 +29,12 @@ export default function Home() {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (p: any) => setCart([...cart, p]);
+  const addToCart = (p: any) => {
+    setCart([...cart, p]);
+    setNotification(`تمت إضافة ${p.product_name || p.name} إلى السلة!`);
+    setTimeout(() => setNotification(null), 3000);
+  };
+
   const removeFromCart = (index: number) => setCart(cart.filter((_, i) => i !== index));
 
   const total = cart.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
@@ -52,11 +58,24 @@ export default function Home() {
 
   return (
     <main className="bg-[#FAFAFA] text-[#333333] min-h-screen">
+      
       {/* أيقونة السلة */}
       <button onClick={() => setShowCart(true)} className="fixed top-8 left-8 z-[100] bg-white p-4 rounded-full shadow-xl border-t-4 border-orange-500 hover:scale-110 transition-transform">
         <ShoppingCart className="text-blue-600" />
         {cart.length > 0 && <span className="absolute -top-2 -right-2 bg-orange-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center font-bold">{cart.length}</span>}
       </button>
+
+      {/* إشعار إضافة المنتج (Toast) */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[2000] bg-blue-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2"
+          >
+            <Check size={20} className="text-orange-400"/> {notification}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* مودال السلة */}
       <AnimatePresence>
@@ -125,7 +144,12 @@ export default function Home() {
                 <img src={p.image_url} className="rounded-[2.5rem] w-full h-[400px] object-cover" />
                 <h3 className="text-xl font-semibold mt-8">{p.name}</h3>
                 <p className="text-orange-600 font-bold mb-4">{p.price} $</p>
-                <button onClick={() => addToCart(p)} className="w-full bg-blue-600 text-white py-4 rounded-full font-bold">أضف للسلة</button>
+                <button 
+                  onClick={() => addToCart(p)} 
+                  className="w-full bg-blue-600 hover:bg-orange-600 text-white py-4 rounded-full font-bold transition-colors"
+                >
+                  أضف للسلة
+                </button>
               </motion.div>
             ))}
           </div>
@@ -144,13 +168,16 @@ export default function Home() {
                     src={getImageUrl(p)} 
                     alt={p.product_name}
                     className="rounded-[2.5rem] w-full h-[300px] object-cover mb-4"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400';
-                    }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400'; }}
                   />
                   <h3 className="text-xl font-semibold">{p.product_name}</h3>
                   <p className="text-orange-600 font-bold mb-4">{p.price} $</p>
-                  <button onClick={() => addToCart(p)} className="w-full bg-blue-600 text-white py-4 rounded-full font-bold">أضف للسلة</button>
+                  <button 
+                    onClick={() => addToCart(p)} 
+                    className="w-full bg-blue-600 hover:bg-orange-600 text-white py-4 rounded-full font-bold transition-colors"
+                  >
+                    أضف للسلة
+                  </button>
                 </motion.div>
               ))}
             </div>
