@@ -1,7 +1,11 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, X, Trash2, ChevronDown, Check } from "lucide-react";
+import { ShoppingCart, X, Trash2, ChevronDown, Check, Minus, Plus, MessageCircle } from "lucide-react";
 import { useState, useEffect } from "react";
+
+const getProductId = (p: any) => p.id ?? p.product_id;
+const getProductName = (p: any) => p.product_name || p.name;
+const getItemQty = (p: any) => p.quantity || 1;
 
 export default function Home() {
   const [products] = useState([
@@ -22,7 +26,10 @@ export default function Home() {
       .catch((err) => console.error("Error:", err));
 
     const savedCart = localStorage.getItem('cart');
-    if (savedCart) setCart(JSON.parse(savedCart));
+    if (savedCart) {
+      const parsed = JSON.parse(savedCart);
+      setCart(parsed.map((item: any) => ({ ...item, quantity: item.quantity || 1 })));
+    }
   }, []);
 
   useEffect(() => {
@@ -30,20 +37,56 @@ export default function Home() {
   }, [cart]);
 
   const addToCart = (p: any) => {
-    setCart([...cart, p]);
-    setNotification(`تمت إضافة ${p.product_name || p.name} إلى السلة!`);
+    const id = getProductId(p);
+    const existing = cart.find((item) => getProductId(item) === id);
+    if (existing) {
+      setCart(
+        cart.map((item) =>
+          getProductId(item) === id
+            ? { ...item, quantity: getItemQty(item) + 1 }
+            : item
+        )
+      );
+    } else {
+      setCart([...cart, { ...p, quantity: 1 }]);
+    }
+    setNotification(`تمت إضافة ${getProductName(p)} إلى السلة!`);
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const removeFromCart = (index: number) => setCart(cart.filter((_, i) => i !== index));
+  const updateQuantity = (id: number | string, delta: number) => {
+    setCart(
+      cart
+        .map((item) => {
+          if (getProductId(item) !== id) return item;
+          const newQty = getItemQty(item) + delta;
+          return newQty > 0 ? { ...item, quantity: newQty } : item;
+        })
+        .filter((item) => getItemQty(item) > 0)
+    );
+  };
 
-  const total = cart.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-  
+  const removeFromCart = (id: number | string) => {
+    setCart(cart.filter((item) => getProductId(item) !== id));
+  };
+
+  const cartCount = cart.reduce((sum, item) => sum + getItemQty(item), 0);
+  const total = cart.reduce(
+    (sum, item) => sum + parseFloat(item.price || 0) * getItemQty(item),
+    0
+  );
+
   const sendToWhatsApp = () => {
-    const text = `مرحباً، أريد طلب المنتجات التالية:%0A` + 
-      cart.map((p, i) => `${i+1}- ${p.product_name || p.name} (${p.price} $)`).join('%0A') + 
+    const text =
+      `مرحباً، أريد طلب المنتجات التالية:%0A` +
+      cart
+        .map(
+          (p, i) =>
+            `${i + 1}- ${getProductName(p)} × ${getItemQty(p)} (${parseFloat(p.price).toFixed(2)} $)`
+        )
+        .join("%0A") +
       `%0A%0Aالمجموع الكلي: ${total.toFixed(2)} $`;
-    window.open(`https://wa.me/905316924944?text=${text}`, '_blank');
+    window.open(`https://wa.me/905316924944?text=${text}`, "_blank");
   };
 
   const getImageUrl = (p: any) => {
@@ -60,9 +103,16 @@ export default function Home() {
     <main className="bg-[#FAFAFA] text-[#333333] min-h-screen">
       
       {/* أيقونة السلة */}
-      <button onClick={() => setShowCart(true)} className="fixed top-8 left-8 z-[100] bg-white p-4 rounded-full shadow-xl border-t-4 border-orange-500 hover:scale-110 transition-transform">
-        <ShoppingCart className="text-blue-600" />
-        {cart.length > 0 && <span className="absolute -top-2 -right-2 bg-orange-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center font-bold">{cart.length}</span>}
+      <button
+        onClick={() => setShowCart(true)}
+        className="fixed top-8 left-8 z-[100] bg-white p-4 rounded-full shadow-xl border border-gray-100 hover:scale-110 hover:shadow-2xl transition-all"
+      >
+        <ShoppingCart className="text-[#3b66f5]" />
+        {cartCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-[#ff6b35] text-white w-6 h-6 rounded-full text-xs flex items-center justify-center font-bold">
+            {cartCount}
+          </span>
+        )}
       </button>
 
       {/* إشعار إضافة المنتج (Toast) */}
@@ -77,33 +127,132 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* مودال السلة */}
+      {/* سلة المشتريات */}
       <AnimatePresence>
         {showCart && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-[1000] flex justify-end">
-            <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} className="bg-white w-full max-w-md h-full p-8 shadow-2xl overflow-y-auto">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold">سلة المشتريات</h2>
-                <button onClick={() => setShowCart(false)}><X /></button>
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-[1000]"
+              onClick={() => setShowCart(false)}
+            />
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="fixed top-0 left-0 h-full w-full max-w-md bg-white z-[1001] shadow-2xl flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                <h2 className="text-lg font-black text-gray-900">
+                  عناصر السلة : <span className="text-[#3b66f5]">{cartCount}</span>
+                </h2>
+                <button
+                  onClick={() => setShowCart(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition text-gray-500 hover:text-gray-800"
+                >
+                  <X size={22} />
+                </button>
               </div>
-              {cart.length === 0 ? <p className="text-center text-gray-500">السلة فارغة</p> : (
-                <div className="space-y-4">
-                  {cart.map((item, i) => (
-                    <div key={i} className="flex justify-between items-center p-4 border rounded-2xl">
-                      <span>{item.product_name || item.name}</span>
-                      <span className="font-bold">{item.price} $</span>
-                      <button onClick={() => removeFromCart(i)} className="text-red-500"><Trash2 size={18}/></button>
-                    </div>
-                  ))}
-                  <div className="border-t pt-4 mt-4 text-xl font-bold flex justify-between">
-                    <span>المجموع:</span>
-                    <span>{total.toFixed(2)} $</span>
+
+              {/* Items */}
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+                {cart.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center py-16">
+                    <ShoppingCart size={48} className="text-gray-200 mb-4" />
+                    <p className="text-gray-400 font-bold">السلة فارغة</p>
+                    <p className="text-gray-300 text-sm mt-1">أضف منتجات لتبدأ التسوق</p>
                   </div>
-                  <button onClick={sendToWhatsApp} className="w-full bg-green-600 text-white py-4 rounded-full font-bold hover:bg-green-700 transition">إتمام الطلب عبر واتساب</button>
+                ) : (
+                  <div className="space-y-0">
+                    {cart.map((item) => {
+                      const id = getProductId(item);
+                      return (
+                        <div
+                          key={id}
+                          className="flex items-center gap-4 py-5 border-b border-gray-100 last:border-0"
+                        >
+                          <img
+                            src={getImageUrl(item)}
+                            alt={getProductName(item)}
+                            className="w-16 h-16 rounded-xl object-cover border border-gray-100 shrink-0"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                "https://via.placeholder.com/80";
+                            }}
+                          />
+
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-gray-900 text-sm leading-snug truncate">
+                              {getProductName(item)}
+                            </h3>
+                            <p className="text-[#ff6b35] font-black text-base mt-1">
+                              {parseFloat(item.price).toFixed(2)} $
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <button
+                                onClick={() => updateQuantity(id, -1)}
+                                className="w-7 h-7 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:border-[#3b66f5] hover:text-[#3b66f5] transition"
+                              >
+                                <Minus size={14} />
+                              </button>
+                              <span className="w-6 text-center font-bold text-gray-800 text-sm">
+                                {getItemQty(item)}
+                              </span>
+                              <button
+                                onClick={() => updateQuantity(id, 1)}
+                                className="w-7 h-7 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:border-[#3b66f5] hover:text-[#3b66f5] transition"
+                              >
+                                <Plus size={14} />
+                              </button>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => removeFromCart(id)}
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition shrink-0"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              {cart.length > 0 && (
+                <div className="px-6 py-5 border-t border-gray-100 bg-white">
+                  <div className="flex items-center justify-between mb-5">
+                    <span className="font-black text-gray-800 text-lg">المجموع الفرعي</span>
+                    <span className="font-black text-[#ff6b35] text-xl">
+                      {total.toFixed(2)} $
+                    </span>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={sendToWhatsApp}
+                      className="flex-1 bg-[#ff6b35] hover:bg-[#e55a28] text-white py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-md shadow-orange-100"
+                    >
+                      <MessageCircle size={18} />
+                      واتس أب
+                    </button>
+                    <button
+                      onClick={() => setShowCart(false)}
+                      className="flex-1 border-2 border-[#ff6b35] text-[#ff6b35] hover:bg-orange-50 py-3.5 rounded-xl font-bold transition-all"
+                    >
+                      تسوق أكثر
+                    </button>
+                  </div>
                 </div>
               )}
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
 
