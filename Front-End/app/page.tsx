@@ -43,7 +43,7 @@ export default function Home() {
     const text = `مرحباً، أريد طلب المنتجات التالية:%0A` + 
       cart.map((p, i) => `${i+1}- ${p.product_name || p.name} (${p.price} $)`).join('%0A') + 
       `%0A%0Aالمجموع الكلي: ${total.toFixed(2)} $`;
-    window.open(`https://wa.me/201001112233?text=${text}`, '_blank');
+    window.open(`https://wa.me/905316924944?text=${text}`, '_blank');
   };
 
   const getImageUrl = (p: any) => {

@@ -67,14 +67,14 @@ class Order extends Model
 
     public function whatsappUrl(): string
     {
-        $phoneNumber = self::WHATSAPP_RECIPIENT_NUMBER;
+        $phoneNumber = ltrim(self::WHATSAPP_RECIPIENT_NUMBER, '+');
 
         return 'https://wa.me/' . $phoneNumber . '?text=' . rawurlencode($this->whatsappMessage());
     }
 
     public function whatsappRecipientNumber(): string
     {
-        return '+' . self::WHATSAPP_RECIPIENT_NUMBER;
+        return self::WHATSAPP_RECIPIENT_NUMBER;
     }
 
     private function formatMoney(float $amount): string
