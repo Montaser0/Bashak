@@ -49,7 +49,6 @@ export default function AdminLogin() {
         <h2 className="text-3xl font-black text-center text-white mb-2">
           دخول <span className="text-[#3b66f5]">Tech</span><span className="text-[#ff6b35]">Rise</span>
         </h2>
-        <p className="text-gray-500 text-center mb-10 text-sm">ادخلي بيانات الأدمن للوصول للوحة التحكم</p>
         
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="relative group">
