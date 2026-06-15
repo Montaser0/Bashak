@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Trash2, Edit, Plus, ShieldUser, Package, Upload, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -103,12 +104,12 @@ export default function AdminDashboard() {
           >
             <ShieldUser size={20} /> إدارة الأدمنز
           </button>
-          <button
-            onClick={() => router.push('/admin/add-product')}
+          <Link
+            href="/admin/add-product"
             className="bg-[#3b66f5] hover:bg-[#ff6b35] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg flex items-center gap-2"
           >
             <Plus size={20} /> إضافة منتج جديد
-          </button>
+          </Link>
         </div>
       </div>
 
